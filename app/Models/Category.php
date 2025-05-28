@@ -18,19 +18,4 @@ class Category extends Model
     {
         return $this->hasMany(Item::class);
     }
-
-    // public function item_categories()
-    // {
-    //     return $this->hasMany(ItemCategory::class);
-    // }
-
-    // public function items()
-    // {
-    //     return $this->belongsToMany(
-    //         Item::class,
-    //         "item_categories",
-    //         "category_id",
-    //         "item_id"
-    //     );
-    // }
 }

@@ -45,13 +45,13 @@ class BorrowingController extends Controller
             return view("components.table", [
                 "items"   => $borrowings,
                 "headers" => [
-                    "id"         => "ID",
-                    "item.name"  => "Item",
-                    "user.username"  => "User",
-                    "status"     => "Status",
-                    "due"        => "Due Date",
-                    "created_at" => "Created",
-                    "updated_at" => "Updated",
+                    "id"            => "ID",
+                    "item.name"     => "Item",
+                    "user.username" => "User",
+                    "status"        => "Status",
+                    "due"           => "Due Date",
+                    "created_at"    => "Created",
+                    "updated_at"    => "Updated",
                 ],
                 "sortField"     => $sort,
                 "sortDirection" => $direction,
@@ -165,9 +165,12 @@ class BorrowingController extends Controller
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(string $id)
+    public function edit(Request $request)
     {
-        //
+        if ($request->expectsJson()) {
+            return ApiResponse::error("Method not allowed.", 405);
+        }
+        abort(404);
     }
 
     /**

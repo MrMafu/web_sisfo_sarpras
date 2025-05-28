@@ -22,7 +22,7 @@ class Returning extends Model
         return $this->belongsTo(Borrowing::class, "borrowing_id");
     }
 
-    // Yang handle pengembalian (Admin)
+    // Returning handler (Admin)
     public function handler()
     {
         return $this->belongsTo(User::class, "handled_by");

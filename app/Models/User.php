@@ -29,13 +29,13 @@ class User extends Authenticatable
         return $this->hasMany(Borrowing::class);
     }
 
-    // Peminjaman yang diapprove
+    // Approved borrowings
     public function approvedBorrowings()
     {
         return $this->hasMany(Borrowing::class, "approved_by");
     }
 
-    // Pengembalian yang dihandle
+    // Handled returns
     public function handledReturns()
     {
         return $this->hasMany(Returning::class, "handled_by");

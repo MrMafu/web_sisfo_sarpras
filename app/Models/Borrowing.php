@@ -19,7 +19,7 @@ class Borrowing extends Model
         "approved_by",
     ];
 
-    // Peminjam
+    // Borrower
     public function user()
     {
         return $this->belongsTo(User::class);
