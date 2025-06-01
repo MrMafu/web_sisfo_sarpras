@@ -5,9 +5,9 @@ namespace App\Http\Controllers;
 use App\Http\ApiResponse;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\ReturningResource;
-use App\Models\Borrowing;
 use App\Models\Returning;
-use App\Models\BorrowingDetail;
+use App\Models\Borrowing;
+use App\Models\ItemUnit;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -45,21 +45,18 @@ class ReturningController extends Controller
             return view("components.table", [
                 "items"   => $returnings,
                 "headers" => [
-                    "id"                => "ID",
-                    "borrowing.user"    => "User",
-                    "borrowing.item"    => "Item",
-                    "returned_quantity" => "Qty Returned",
-                    "status"            => "Status",
-                    "created_at"        => "Requested",
+                    "id"                      => "ID",
+                    "borrowing.item.name"     => "Item",
+                    "borrowing.user.username" => "User",
+                    "returned_quantity"       => "Qty Returned",
+                    "status"                  => "Status",
+                    "created_at"              => "Requested",
+                    "updated_at"              => "Updated",
                 ],
                 "sortField"     => $sort,
                 "sortDirection" => $direction,
                 "actions"       => true,
-                "actionProps"   => [
-                    "viewFields"  => ["id", "borrowing.user", "borrowing.item", "returned_quantity", "status", "created_at"],
-                    "editFields"  => ["status"],
-                    "deleteRoute" => "returnings.destroy",
-                ],
+                "actionProps"   => ["showRoute" => "returnings.show"],
             ]);
         }
 
@@ -134,7 +131,7 @@ class ReturningController extends Controller
     public function show(Request $request, $id)
     {
         $returning = Returning::with([
-            "borrowing.borrowingDetails.itemUnit", "borrowing.user", "handler"
+            "borrowing.borrowingDetails.itemUnit", "borrowing.user", "handler", "borrowing.item"
         ])->find($id);
 
         if (!$returning) {
@@ -144,6 +141,12 @@ class ReturningController extends Controller
             abort(404);
         }
 
+        $returnedUnits = $returning->borrowing->borrowingDetails
+            ->take($returning->returned_quantity);
+
+        $notReturnedUnits = $returning->borrowing->borrowingDetails
+            ->slice($returning->returned_quantity);
+
         $data = new ReturningResource($returning);
         if ($request->expectsJson()) {
             if (Auth::user()->role === "user" && $returning->borrowing->user_id !== Auth::id()) {
@@ -152,7 +155,11 @@ class ReturningController extends Controller
             return ApiResponse::success($data, "Return details retrieved.");
         }
 
-        return view("returnings.show", compact("returning"));
+        return view("returnings.show", [
+            "returning"        => $returning,
+            "returnedUnits"    => $returnedUnits,
+            "notReturnedUnits" => $notReturnedUnits
+        ]);
     }
 
     /**
@@ -205,19 +212,19 @@ class ReturningController extends Controller
             $borrowing = $returning->borrowing;
             $details = $borrowing->borrowingDetails()->with("itemUnit")->get();
 
-            if ($returning->status === "approved" &&
-                $returning->returned_quantity === $borrowing->quantity) {
+            if ($returning->status === "approved") {
                 foreach ($details as $detail) {
-                    $detail->itemUnit->update(["status" => "available"]);
+                    $detail->itemUnit->update(["status" => ItemUnit::statusAvailable]);
                 }
 
                 $returning->returned_at = now();
-                $borrowing->status = "returned";
+                $borrowing->status = Borrowing::statusReturned;
                 $borrowing->save();
 
             } else {
+                $borrowing->status = Borrowing::statusOverdue;
                 foreach ($details as $detail) {
-                    $detail->itemUnit->update(["status" => "unknown"]);
+                    $detail->itemUnit->update(["status" => ItemUnit::statusLost]);
                 }
             }
 
@@ -229,11 +236,20 @@ class ReturningController extends Controller
                 "handler",
             ]));
 
-            return ApiResponse::success($data, "Return updated successfully.");
+            if ($request->expectsJson()) {
+                return ApiResponse::success($data, "Return updated successfully.");
+            }
+
+            return redirect()->route("returnings.show", $returning->id)
+                ->with("status", "Return updated successfully.");
 
         } catch (\Throwable $throw) {
             DB::rollBack();
-            return ApiResponse::error("Failed to update return.", 500, $throw->getMessage());
+            if ($request->expectsJson()) {
+                return ApiResponse::error("Failed to update return.", 500, $throw->getMessage());
+            }
+
+            return back()->withErrors(["error" => "Failed to update return."]);
         }
     }
 

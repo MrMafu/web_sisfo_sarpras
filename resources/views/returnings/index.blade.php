@@ -1,7 +1,7 @@
 @extends('layouts.app')
 
-@section('title', 'Borrowings')
-@section('page-title', 'Dashboard > Borrowings')
+@section('title', 'Returnings')
+@section('page-title', 'Dashboard > Returnings')
 
 @section('content')
     <div class="flex h-screen bg-gray-50">
@@ -15,7 +15,7 @@
                 <div class="pb-6 space-y-6">
                     <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center
                         gap-4 mb-6">
-                        <h2 class="text-2xl font-bold">Borrowings</h2>
+                        <h2 class="text-2xl font-bold">Returnings</h2>
                     </div>
 
                     {{-- Status Flash --}}
@@ -28,13 +28,12 @@
                         'action'      => route('borrowings.index'),
                         'searchName'  => 'item',
                         'sortOptions' => [
-                            'id'            => 'ID',
-                            'item.name'     => 'Item',
-                            'user.username' => 'User',
-                            'status'        => 'Status',
-                            'due'           => 'Due Date',
-                            'created_at'    => 'Created',
-                            'updated_at'    => 'Updated',
+                            'id'                => 'ID',
+                            'borrowing_id'      => 'Item',
+                            'returned_quantity' => 'Qty Returned',
+                            'status'            => 'Status',
+                            'created_at'        => 'Created',
+                            'updated_at'        => 'Updated',
                         ],
                         'exclude' => ['status'],
                         'filters' => view('components.filters.dropdown', [
@@ -43,9 +42,7 @@
                             'options' => [
                                 'pending'  => 'Pending',
                                 'approved' => 'Approved',
-                                'rejected' => 'Rejected',
-                                'overdue'  => 'Overdue',
-                                'returned' => 'Returned'
+                                'rejected' => 'Rejected'
                             ]
                         ])
                     ])
@@ -54,33 +51,33 @@
                 {{-- Table --}}
                 <div class="flex-1 flex flex-col">
                     @php
-                        $rowCount = $borrowings->count();
+                        $rowCount = $returnings->count();
                     @endphp
                     <div id="table-container" class="flex-1 overflow-auto
                         {{ $rowCount > 4 ? 'max-h-[15rem]' : ''}}">
                         <x-table
-                            :items="$borrowings"
+                            :items="$returnings"
                             :headers="[
-                                'id'            => 'ID',
-                                'item.name'     => 'Item',
-                                'user.username' => 'User',
-                                'status'        => 'Status',
-                                'due'           => 'Due Date',
-                                'created_at'    => 'Created',
-                                'updated_at'    => 'Updated',
+                                'id'                      => 'ID',
+                                'borrowing.item.name'     => 'Item',
+                                'borrowing.user.username' => 'User',
+                                'returned_quantity'       => 'Qty Returned',
+                                'status'                  => 'Status',
+                                'created_at'              => 'Created',
+                                'updated_at'              => 'Updated',
                             ]"
                             :sortField="$sort"
                             :sortDirection="$direction"
-                            emptyMessage="No borrowings found."
+                            emptyMessage="No returnings found."
                             :actions="true"
-                            :actionProps="['showRoute' => 'borrowings.show']"
+                            :actionProps="['showRoute' => 'returnings.show']"
                         />
                     </div>
 
                     {{-- Pagination --}}
-                    @if ($borrowings->hasPages())
+                    @if ($returnings->hasPages())
                         <div class="flex justify-center mt-6 pagination">
-                            {{ $borrowings->withQueryString()->links() }}
+                            {{ $returnings->withQueryString()->links() }}
                         </div>
                     @endif
                 </div>
@@ -101,7 +98,7 @@
 
                 try {
                     const response = await fetch(`${location.pathname}?${params}`, {
-                        headers: { 
+                        headers: {
                             'X-Requested-With': 'XMLHttpRequest',
                             'Accept': 'text/html'
                         },

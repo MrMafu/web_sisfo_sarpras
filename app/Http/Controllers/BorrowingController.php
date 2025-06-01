@@ -8,6 +8,8 @@ use App\Http\Resources\BorrowingResource;
 use App\Models\Borrowing;
 use App\Models\BorrowingDetail;
 use App\Models\ItemUnit;
+use App\Models\Item;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -20,12 +22,36 @@ class BorrowingController extends Controller
      */
     public function index(Request $request)
     {
-        $allowedSorts = ["id", "item_id", "user_id", "status", "due", "created_at", "updated_at"];
+        $allowedSorts = ["id", "item.name", "user.username", "status", "due", "created_at", "updated_at"];
         $sort = $request->get("sort", "id");
         $direction = $request->get("direction", "asc") === "desc" ? "desc" : "asc";
 
         if (!in_array($sort, $allowedSorts)) {
             $sort = "id";
+        }
+
+        // Auto-reject pending overdue borrowings
+        Borrowing::where("status", Borrowing::statusPending)
+            ->where("due", "<", now())
+            ->update(["status" => Borrowing::statusRejected]);
+        
+        // Auto-mark overdue borrowings and update item units
+        $overdueBorrowings = Borrowing::with("borrowingDetails.itemUnit")
+            ->where("status", Borrowing::statusApproved)
+            ->where("due", "<", now())
+            ->whereDoesntHave("returning", function ($query) {
+                $query->where("status", "approved");
+            })
+            ->get();
+
+        foreach ($overdueBorrowings as $borrowing) {
+            $borrowing->update(["status" => Borrowing::statusOverdue]);
+
+            foreach ($borrowing->borrowingDetails as $detail) {
+                if ($detail->itemUnit->status === ItemUnit::statusBorrowed) {
+                    $detail->itemUnit->update(["status" => ItemUnit::statusOverdue]);
+                }
+            }
         }
 
         $query = Borrowing::with(["user", "item", "approver", "borrowingDetails.itemUnit"]);
@@ -37,8 +63,18 @@ class BorrowingController extends Controller
             $query->where("status", $status);
         }
 
-        $borrowings = $query->orderBy($sort, $direction)
-            ->paginate(10)
+        $query->select("borrowings.*");
+        if ($sort === "item.name") {
+            $query->join("items", "borrowings.item_id", "=", "items.id")
+                ->orderBy("items.name", $direction);
+        } elseif ($sort === "user.username") {
+            $query->join("users", "borrowings.user_id", "=", "users.id")
+                ->orderBy("users.username", $direction);
+        } else {
+            $query->orderBy("borrowings.{$sort}", $direction);
+        }
+
+        $borrowings = $query->paginate(10)
             ->appends($request->only(["search", "status", "sort", "direction"]));
 
         if ($request->ajax()) {
@@ -56,11 +92,7 @@ class BorrowingController extends Controller
                 "sortField"     => $sort,
                 "sortDirection" => $direction,
                 "actions"       => true,
-                "actionProps"   => [
-                    "viewFields"  => ["id", "item.name", "user.username", "status", "due", "created_at", "updated_at"],
-                    "editFields"  => ["status"],
-                    "deleteRoute" => "borrowings.destroy",
-                ],
+                "actionProps"   => ["showRoute"  => "borrowings.show"],
             ]);
         }
 
@@ -141,7 +173,7 @@ class BorrowingController extends Controller
     public function show(Request $request, $id)
     {
         $borrowing = Borrowing::with([
-            "user", "item", "approver", "borrowingDetails.itemUnit"
+            "user", "item", "approver", "borrowingDetails.itemUnit", "returning.handler"
         ])->find($id);
 
         if (!$borrowing) {
@@ -150,6 +182,12 @@ class BorrowingController extends Controller
             }
             abort(404);
         }
+
+        // Auto-reject if overdue
+        $this->autoRejectOverduePending($borrowing);
+
+        // Auto-mark as overdue
+        $this->autoMarkOverdueUnits($borrowing);
 
         $data = new BorrowingResource($borrowing);
         if ($request->expectsJson()) {
@@ -194,7 +232,7 @@ class BorrowingController extends Controller
         }
 
         $validator = Validator::make($request->all(), [
-            "status" => "required|in:approved,rejected,returned"
+            "status" => "required|in:approved,rejected"
         ]);
 
         if ($validator->fails()) {
@@ -232,7 +270,7 @@ class BorrowingController extends Controller
                 }
 
                 foreach ($units as $unit) {
-                    $unit->update(["status" => "borrowed"]);
+                    $unit->update(["status" => ItemUnit::statusBorrowed]);
                     BorrowingDetail::create([
                         "borrowing_id" => $borrowing->id,
                         "item_unit_id" => $unit->id,
@@ -291,5 +329,33 @@ class BorrowingController extends Controller
 
         $borrowing->delete();
         return ApiResponse::noContent();
+    }
+
+    // Auto-reject pending borrowings if overdue
+    protected function autoRejectOverduePending(Borrowing $borrowing)
+    {
+        if ($borrowing->status === "pending" && $borrowing->due < now()) {
+            $borrowing->update(["status" => "rejected"]);
+            return true;
+        }
+        return false;
+    }
+
+    // Auto-mark item units overdue
+    protected function autoMarkOverdueUnits(Borrowing $borrowing)
+    {
+        if ($borrowing->status === Borrowing::statusApproved && $borrowing->due < now() &&
+            (!$borrowing->returning || $borrowing->returning->status !== "approved")) {
+            
+            $borrowing->update(["status" => Borrowing::statusOverdue]);
+            foreach ($borrowing->borrowingDetails as $detail) {
+                if ($detail->itemUnit->status !== ItemUnit::statusOverdue &&
+                    $detail->itemUnit->status !== ItemUnit::statusLost) {
+                    $detail->itemUnit->update(["status" => ItemUnit::statusOverdue]);
+                }
+            }
+            return true;
+        }
+        return false;
     }
 }

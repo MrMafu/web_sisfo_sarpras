@@ -19,6 +19,12 @@ class Borrowing extends Model
         "approved_by",
     ];
 
+    const statusPending = "pending";
+    const statusApproved = "approved";
+    const statusRejected = "rejected";
+    const statusOverdue = "overdue";
+    const statusReturned = "returned";
+
     // Borrower
     public function user()
     {

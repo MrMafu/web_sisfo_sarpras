@@ -19,8 +19,11 @@
                     @csrf
 
                     <div>
-                        <label for="username" class="block text-sm text-gray-600 font-medium mb-1">Username</label>
-                        <div class="relative transform transition duration-200 ease-in-out focus-within:scale-101">
+                        <label for="username" class="block text-sm text-gray-600 font-medium mb-1">
+                            Username
+                        </label>
+                        <div class="relative transform transition duration-200 ease-in-out
+                            focus-within:scale-101">
                             <span
                                 class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-auto
                                 transform transition duration-200 ease-in-out focus-within:scale-101">
@@ -28,9 +31,10 @@
                             </span>
 
                             <input name="username" type="text" value="{{ old('username') }}" required
-                                class="block w-full pl-10 pr-4 py-2 border @error('username') border-red-500
-                                @else border-gray-400 @enderror rounded-md focus:outline-none
-                                focus:border-[#7752fe] transform transition duration-200 ease-in-out">
+                                class="block w-full pl-10 pr-4 py-2 border @error('username')
+                                border-red-500 @else border-gray-400 @enderror rounded-md
+                                focus:outline-none focus:border-[#7752fe] transform transition duration-200
+                                ease-in-out">
                         </div>
                         @error('username')
                             <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
@@ -38,8 +42,11 @@
                     </div>
 
                     <div>
-                        <label for="password" class="block text-sm text-gray-600 font-medium mb-1">Password</label>
-                        <div class="relative transform transition duration-200 ease-in-out focus-within:scale-101">
+                        <label for="password" class="block text-sm text-gray-600 font-medium mb-1">
+                            Password
+                        </label>
+                        <div class="relative transform transition duration-200 ease-in-out
+                            focus-within:scale-101">
                             <span
                                 class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-auto
                                 transform transition duration-200 ease-in-out focus-within:scale-101">
@@ -47,9 +54,10 @@
                             </span>
 
                             <input name="password" type="password" required
-                                class="block w-full pl-10 pr-4 py-2 border @error('password') border-red-500
-                                @else border-gray-400 @enderror rounded-md focus:outline-none
-                                focus:border-[#7752fe] transform transition duration-200 ease-in-out">
+                                class="block w-full pl-10 pr-4 py-2 border @error('password')
+                                border-red-500 @else border-gray-400 @enderror rounded-md
+                                focus:outline-none focus:border-[#7752fe] transform transition duration-200
+                                ease-in-out">
                         </div>
                         @error('password')
                             <p class="text-red-500 text-sm mt-1">{{ $message }}</p>

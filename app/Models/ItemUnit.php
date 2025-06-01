@@ -15,6 +15,11 @@ class ItemUnit extends Model
         "status",
     ];
 
+    const statusAvailable = "available";
+    const statusBorrowed = "borrowed";
+    const statusOverdue = "overdue";
+    const statusLost = "lost";
+
     public function item()
     {
         return $this->belongsTo(Item::class);
@@ -37,7 +42,9 @@ class ItemUnit extends Model
         });
 
         static::updated(function (ItemUnit $unit) {
-            $unit->item->recalculateStock();
+            if ($unit->isDirty("status")) {
+                $unit->item->recalculateStock();
+            }
         });
     }
 }

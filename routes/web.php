@@ -8,6 +8,7 @@ use App\Http\Controllers\{
     ItemController,
     ItemUnitController,
     BorrowingController,
+    ReturningController,
 };
 
 use Illuminate\Support\Facades\Route;
@@ -34,4 +35,5 @@ Route::middleware(["auth", "admin-only"])->group(function() {
     Route::resource("items", ItemController::class)->except("changeImage");
     Route::resource("item_units", ItemUnitController::class)->parameters(["item_units" => "itemUnit"]);
     Route::resource("borrowings", BorrowingController::class);
+    Route::resource("returnings", ReturningController::class);
 });

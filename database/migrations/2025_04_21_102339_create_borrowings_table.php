@@ -16,7 +16,8 @@ return new class extends Migration
             $table->foreignId('item_id')->constrained('items')->cascadeOnDelete();
             $table->foreignId('user_id')->constrained('users')->cascadeOnDelete();
             $table->integer('quantity');
-            $table->enum('status', ['pending', 'approved', 'rejected', 'returned']);
+            $table->enum('status', ['pending', 'approved', 'rejected', 'overdue', 'returned'])
+                ->default('pending');
             $table->dateTime('due');
             $table->dateTime('approved_at')->nullable();
             $table->foreignId('approved_by')->nullable()->constrained('users')->cascadeOnDelete();

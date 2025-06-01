@@ -3,10 +3,12 @@
     'viewFields'  => ['id'],
     'editFields'  => ['id'],
     'deleteRoute' => null,
+    'showRoute'   => null,
 ])
 
 @php
-    $isBorrowing = $deleteRoute === 'borrowings.destroy';
+    $isBorrowing = $showRoute === 'borrowings.show';
+    $isReturning = $showRoute === 'returnings.show';
 @endphp
 
 <div x-data="{
@@ -39,9 +41,13 @@
                 top   : ${dropdownTop}px;
                 right : ${dropdownRight}px;
             `">
-            @if ($isBorrowing)
-                {{-- Borrowing Details --}}
-                <a href="{{ route('borrowings.show', $item->id) }}"
+            @if ($isBorrowing || $isReturning)
+                {{-- Details Link --}}
+                <a href="{{
+                    $isBorrowing ?
+                    route('borrowings.show', $item->id) :
+                    route('returnings.show', $item->id)
+                }}"
                     class="cursor-pointer flex items-center gap-2 w-full px-4 py-2 text-sm text-[#7752fe]
                     hover:text-[#6b4ae5] hover:bg-[#f1eeff] transition duration-200 ease-in-out">
                     <i class="fa-solid fa-file-invoice w-4 text-center"></i>

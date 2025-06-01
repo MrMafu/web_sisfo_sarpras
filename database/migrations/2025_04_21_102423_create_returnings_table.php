@@ -13,10 +13,11 @@ return new class extends Migration
     {
         Schema::create('returnings', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('borrow_id')->constrained('borrowings')->cascadeOnDelete();
+            $table->foreignId('borrowing_id')->constrained('borrowings')->cascadeOnDelete();
             $table->integer('returned_quantity');
-            $table->enum('status', ['pending', 'approved', 'rejected']);
+            $table->enum('status', ['pending', 'approved', 'rejected'])->default('pending');
             $table->foreignId('handled_by')->nullable()->constrained('users')->cascadeOnDelete();
+            $table->dateTime('returned_at')->nullable();
             $table->timestamps();
         });
     }

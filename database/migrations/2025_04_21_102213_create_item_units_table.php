@@ -15,7 +15,7 @@ return new class extends Migration
             $table->id();
             $table->foreignId('item_id')->constrained('items')->cascadeOnDelete();
             $table->string('sku')->unique();
-            $table->enum('status', ['available', 'borrowed']);
+            $table->enum('status', ['available', 'borrowed', 'overdue', 'lost'])->default('available');
             $table->timestamps();
         });
     }

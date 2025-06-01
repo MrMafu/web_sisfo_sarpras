@@ -8,7 +8,7 @@
         {{-- State management --}}
         modals: {
             view   : { open: false, item: null },
-            create : { open: {{ $errors->create->isNotEmpty() ? 'true' : 'false' }} },
+            create : { open: {{ $errors->create->isNotEmpty() || request()->has('create') ? 'true' : 'false' }} },
             edit   : { open: {{ $errors->edit->isNotEmpty() ? 'true' : 'false' }}, item: null },
             delete : { open: false, url: '' }
         },
@@ -48,14 +48,15 @@
             <main class="flex flex-1 flex-col p-6">
                 {{-- Header --}}
                 <div class="pb-6 space-y-6">
-                    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+                    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center
+                        gap-4 mb-6">
                         <h2 class="text-2xl font-bold">Items</h2>
                         <div class="space-x-2">
                             <button @click="modals.create.open = true"
-                                class="cursor-pointer inline-flex items-center bg-[#7752fe] hover:bg-[#6b4ae5]
-                                text-white font-semibold px-5 py-2 rounded-lg shadow transition duration-200
-                                ease-in-out">
-                                <i class="fa-solid fa-boxes-stacked mr-2"></i>
+                                class="cursor-pointer inline-flex items-center bg-[#7752fe]
+                                hover:bg-[#6b4ae5] text-white font-semibold px-5 py-2 rounded-lg shadow
+                                transition duration-200 ease-in-out">
+                                <x-fluentui-box-multiple-24 class="w-6 h-6 mr-2" />
                                 New Item
                             </button>
                         </div>
@@ -106,7 +107,15 @@
                             emptyMessage="No items found."
                             :actions="true"
                             :actionProps="[
-                                'viewFields'  => ['id', 'name', 'category.name', 'stock', 'image', 'created_at', 'updated_at'],
+                                'viewFields'  => [
+                                    'id',
+                                    'name',
+                                    'category.name',
+                                    'stock',
+                                    'image',
+                                    'created_at',
+                                    'updated_at'
+                                ],
                                 'editFields'  => ['id', 'name', 'category_id'],
                                 'deleteRoute' => 'items.destroy',
                             ]"
@@ -194,13 +203,13 @@
                     <form x-bind:action="modals.delete.url" method="POST" class="inline">
                         @csrf
                         @method('DELETE')
-                        <button type="submit" class="cursor-pointer px-4 py-2 bg-red-600 text-white rounded
-                        hover:bg-red-700 transition duration-200 ease-in-out">
+                        <button type="submit"
+                            class="cursor-pointer px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700
+                            transition duration-200 ease-in-out">
                             Yes, delete
                         </button>
                     </form>
                 </x-slot>
-
                 Are you sure you want to delete this item? This action cannot be undone.
             </x-modals.delete>
         </div>

@@ -49,6 +49,7 @@
                                     :viewFields="$actionProps['viewFields'] ?? ['id']"
                                     :editFields="$actionProps['editFields'] ?? ['id']"
                                     :deleteRoute="$actionProps['deleteRoute'] ?? null"
+                                    :showRoute="$actionProps['showRoute'] ?? null"
                                 />
                             </td>
                         @endif

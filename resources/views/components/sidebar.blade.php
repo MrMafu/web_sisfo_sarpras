@@ -39,8 +39,8 @@
         <a href="{{ route('items.index') }}"
             class="flex items-center px-4 py-2 rounded hover:bg-[#f1eeff] transition duration-100 ease-in-out
             {{ request()->routeIs('items.index') ? 'bg-[#f1eeff] text-[#7752fe] font-medium' : 'text-gray-700' }}">
-            <span class="w-6 text-center text-lg mr-2">
-                <i class="fa-solid fa-boxes-stacked"></i>
+            <span class="w-6 text-center mr-2">
+                <x-fluentui-box-multiple-24 />
             </span>
             Items
         </a>
@@ -49,8 +49,8 @@
         <a href="{{ route('item_units.index') }}"
             class="flex items-center px-4 py-2 rounded hover:bg-[#f1eeff] transition duration-100 ease-in-out
             {{ request()->routeIs('item_units.index') ? 'bg-[#f1eeff] text-[#7752fe] font-medium' : 'text-gray-700' }}">
-            <span class="w-6 text-center text-lg mr-2">
-                <i class="fa-solid fa-box"></i>
+            <span class="w-6 text-center mr-2">
+                <x-fluentui-box-24 />
             </span>
             Item Units
         </a>
@@ -59,18 +59,18 @@
         <a href="{{ route('borrowings.index') }}"
             class="flex items-center px-4 py-2 rounded hover:bg-[#f1eeff] transition duration-100 ease-in-out
             {{ request()->routeIs('borrowings.index') ? 'bg-[#f1eeff] text-[#7752fe] font-medium' : 'text-gray-700' }}">
-            <span class="w-6 text-center text-lg mr-2">
-                <i class="fa-solid fa-hand-holding"></i>
+            <span class="w-6 text-center mr-2">
+                <x-lucide-square-arrow-out-up-right />
             </span>
             Borrowings
         </a>
 
         {{-- Returnings --}}
-        <a href=""
+        <a href="{{ route('returnings.index') }}"
             class="flex items-center px-4 py-2 rounded hover:bg-[#f1eeff] transition duration-100 ease-in-out
-            {{ request()->routeIs('returnings.*') ? 'bg-[#f1eeff] text-[#7752fe] font-medium' : 'text-gray-700' }}">
-            <span class="w-6 text-center text-lg mr-2">
-                <i class="fa-solid fa-hand-holding rotate-180"></i>
+            {{ request()->routeIs('returnings.index') ? 'bg-[#f1eeff] text-[#7752fe] font-medium' : 'text-gray-700' }}">
+            <span class="w-6 text-center mr-2">
+                <x-lucide-square-arrow-out-down-left />
             </span>
             Returnings
         </a>

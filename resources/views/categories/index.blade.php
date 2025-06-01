@@ -8,7 +8,7 @@
         {{-- State management --}}
         modals: {
             view   : { open: false, item: null },
-            create : { open: {{ $errors->create->isNotEmpty() ? 'true' : 'false' }} },
+            create : { open: {{ $errors->create->isNotEmpty() || request()->has('create') ? 'true' : 'false' }} },
             edit   : { open: {{ $errors->edit->isNotEmpty() ? 'true' : 'false' }}, item: null },
             delete : { open: false, url: '' }
         },
@@ -48,13 +48,14 @@
             <main class="flex flex-1 flex-col p-6">
                 {{-- Header --}}
                 <div class="pb-6 space-y-6">
-                    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+                    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center
+                        gap-4 mb-6">
                         <h2 class="text-2xl font-bold">Categories</h2>
                         <div class="space-x-2">
                             <button @click="modals.create.open = true"
-                                class="cursor-pointer inline-flex items-center bg-[#7752fe] hover:bg-[#6b4ae5]
-                                text-white font-semibold px-5 py-2 rounded-lg shadow transition duration-200
-                                ease-in-out">
+                                class="cursor-pointer inline-flex items-center bg-[#7752fe]
+                                hover:bg-[#6b4ae5] text-white font-semibold px-5 py-2 rounded-lg shadow
+                                transition duration-200 ease-in-out">
                                 <i class="fa-solid fa-shapes mr-2"></i>
                                 New Category
                             </button>
@@ -88,7 +89,7 @@
                         $rowCount = $categories->count();
                     @endphp
                     <div id="table-container" class="flex-1 overflow-auto
-                        {{ $rowCount > 5 ? 'max-h-[15rem]' : ''}}">
+                        {{ $rowCount > 4 ? 'max-h-[15rem]' : ''}}">
                         <x-table
                             :items="$categories"
                             :headers="[
@@ -175,13 +176,13 @@
                     <form x-bind:action="modals.delete.url" method="POST" class="inline">
                         @csrf
                         @method('DELETE')
-                        <button type="submit" class="cursor-pointer px-4 py-2 bg-red-600 text-white rounded
-                        hover:bg-red-700 transition duration-200 ease-in-out">
+                        <button type="submit"
+                            class="cursor-pointer px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700
+                            transition duration-200 ease-in-out">
                             Yes, delete
                         </button>
                     </form>
                 </x-slot>
-
                 Are you sure you want to delete this category? This action cannot be undone.
             </x-modals.delete>
         </div>
