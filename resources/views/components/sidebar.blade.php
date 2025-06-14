@@ -40,7 +40,7 @@
             class="flex items-center px-4 py-2 rounded hover:bg-[#f1eeff] transition duration-100 ease-in-out
             {{ request()->routeIs('items.index') ? 'bg-[#f1eeff] text-[#7752fe] font-medium' : 'text-gray-700' }}">
             <span class="w-6 text-center mr-2">
-                <x-fluentui-box-multiple-24 />
+                <i class="fa-solid fa-boxes-stacked"></i>
             </span>
             Items
         </a>
@@ -50,7 +50,7 @@
             class="flex items-center px-4 py-2 rounded hover:bg-[#f1eeff] transition duration-100 ease-in-out
             {{ request()->routeIs('item_units.index') ? 'bg-[#f1eeff] text-[#7752fe] font-medium' : 'text-gray-700' }}">
             <span class="w-6 text-center mr-2">
-                <x-fluentui-box-24 />
+                <i class="fa-solid fa-box"></i>
             </span>
             Item Units
         </a>
@@ -60,7 +60,7 @@
             class="flex items-center px-4 py-2 rounded hover:bg-[#f1eeff] transition duration-100 ease-in-out
             {{ request()->routeIs('borrowings.index') ? 'bg-[#f1eeff] text-[#7752fe] font-medium' : 'text-gray-700' }}">
             <span class="w-6 text-center mr-2">
-                <x-lucide-square-arrow-out-up-right />
+                <i class="fa-solid fa-up-right-from-square"></i>
             </span>
             Borrowings
         </a>
@@ -70,7 +70,7 @@
             class="flex items-center px-4 py-2 rounded hover:bg-[#f1eeff] transition duration-100 ease-in-out
             {{ request()->routeIs('returnings.index') ? 'bg-[#f1eeff] text-[#7752fe] font-medium' : 'text-gray-700' }}">
             <span class="w-6 text-center mr-2">
-                <x-lucide-square-arrow-out-down-left />
+                <i class="fa-solid fa-up-right-from-square rotate-z-180"></i>
             </span>
             Returnings
         </a>

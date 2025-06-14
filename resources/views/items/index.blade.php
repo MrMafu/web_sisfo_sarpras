@@ -56,7 +56,7 @@
                                 class="cursor-pointer inline-flex items-center bg-[#7752fe]
                                 hover:bg-[#6b4ae5] text-white font-semibold px-5 py-2 rounded-lg shadow
                                 transition duration-200 ease-in-out">
-                                <x-fluentui-box-multiple-24 class="w-6 h-6 mr-2" />
+                                <i class="fa-solid fa-boxes-stacked mr-2"></i>
                                 New Item
                             </button>
                         </div>

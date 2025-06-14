@@ -21,6 +21,7 @@ class ItemResource extends JsonResource
             "name"       => $this->name,
             "stock"      => $this->stock,
             "image"      => $this->image,
+            'units'      => ItemUnitResource::collection($this->whenLoaded('itemUnits')),
             "created_at" => $this->created_at,
             "updated_at" => $this->updated_at,
         ];

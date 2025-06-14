@@ -31,9 +31,14 @@ class ItemController extends Controller
             $query->where("name", "like", "%{$search}%");
         }
 
-        $items = $query->orderBy($sort, $direction)
-            ->paginate(10)
-            ->appends($request->only(["search", "sort", "direction"]));
+        if ($categoryId = $request->get("category_id")) {
+            $query->where("category_id", (int) $categoryId);
+        }
+
+        $query->orderBy($sort, $direction);
+
+        $items = $query->paginate(10)
+            ->appends($request->only(["search", "category_id", "sort", "direction"]));
         
         if ($request->ajax()) {
             return view("components.table", [
@@ -59,9 +64,7 @@ class ItemController extends Controller
         }
 
         if ($request->expectsJson()) {
-            $items = Item::all();
             $data = ItemResource::collection($items);
-
             return ApiResponse::success($data, "Items retrieved successfully.");
         }
 
@@ -125,7 +128,7 @@ class ItemController extends Controller
      */
     public function show(Request $request, $id)
     {
-        $item = Item::with("category")->find($id);
+        $item = Item::with(["category", "itemUnits"])->find($id);
         if (!$item) {
             if ($request->expectsJson()) {
                 return ApiResponse::error("Item not found.", 404);

@@ -1,10 +1,6 @@
 <?php
 
 use App\Http\ApiResponse;
-use App\Http\Controllers\API\{
-    ReturningController,
-};
-
 use App\Http\Controllers\{
     AuthController,
     UserController,
@@ -12,6 +8,7 @@ use App\Http\Controllers\{
     ItemController,
     ItemUnitController,
     BorrowingController,
+    ReturningController
 };
 
 use Illuminate\Support\Facades\Route;
@@ -20,11 +17,18 @@ use Illuminate\Support\Facades\Route;
 Route::post("login", [AuthController::class, "login"]);
 Route::post("logout", [AuthController::class, "logout"])->middleware("auth:sanctum");
 
+// Public authenticated routes
+Route::middleware('auth:sanctum')->group(function () {
+    Route::get('categories', [CategoryController::class, 'index']);
+    Route::get('items', [ItemController::class, 'index']);
+    Route::get('items/{item}', [ItemController::class, 'show']);
+});
+
 // Admin routes
-Route::prefix("admin")->middleware(["auth:sanctum", "admin-only"])->group(function () {
+Route::prefix("admin")->as("api.admin.")->middleware(["auth:sanctum", "admin-only"])->group(function () {
     Route::resource("users", UserController::class);
     Route::resource("categories", CategoryController::class);
-    Route::resource("items", ItemController::class);
+    Route::resource("items", ItemController::class)->except("changeImage");
     Route::resource("item_units", ItemUnitController::class);
 
     // Change image item (postman)
@@ -32,14 +36,12 @@ Route::prefix("admin")->middleware(["auth:sanctum", "admin-only"])->group(functi
 });
 
 // Transactional data (can be accessed by both admins & users)
-Route::middleware("auth:sanctum")->group(function () {
+Route::middleware("auth:sanctum")->as("api.")->group(function () {
     Route::resource("borrowings", BorrowingController::class);
-    Route::apiResources([
-        "returnings" => ReturningController::class,
-    ]);
+    Route::resource("returnings", ReturningController::class);
 });
 
 // For when unauthenticated users do requests
 Route::get("fallback", function () {
     return ApiResponse::error("Unauthorized.", 401);
-})->name("login");
+});
