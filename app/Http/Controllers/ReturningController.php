@@ -12,6 +12,9 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\Style\Border;
+use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 
 class ReturningController extends Controller
 {
@@ -277,5 +280,69 @@ class ReturningController extends Controller
 
         $returning->delete();
         return ApiResponse::noContent();
+    }
+
+    public function exportExcel()
+    {
+        $returnings = Returning::with(["borrowing.user", "borrowing.item", "handler"])->get();
+        $spreadsheet = new Spreadsheet();
+        $sheet = $spreadsheet->getActiveSheet();
+
+        $headers = [
+            "A" => ["ID", 10],
+            "B" => ["Borrowing ID", 15],
+            "C" => ["Item", 15],
+            "D" => ["User", 15],
+            "E" => ["Returned Qty", 15],
+            "F" => ["Status", 15],
+            "G" => ["Handled By", 15],
+            "H" => ["Returned At", 20],
+            "I" => ["Created At", 20],
+            "J" => ["Updated At", 20]
+        ];
+
+        foreach ($headers as $col => [$title, $width]) {
+            $sheet->setCellValue($col."1", $title);
+            $sheet->getColumnDimension($col)->setWidth($width);
+        }
+
+        $row = 2;
+        foreach ($returnings as $returning) {
+            $returnedAt = $returning->returned_at ? \Carbon\Carbon::parse($returning->returned_at) : null;
+            $createdAt = $returning->created_at ? \Carbon\Carbon::parse($returning->created_at) : null;
+            $updatedAt = $returning->updated_at ? \Carbon\Carbon::parse($returning->updated_at) : null;
+            
+            $sheet->setCellValue("A".$row, $returning->id);
+            $sheet->setCellValue("B".$row, $returning->borrowing_id);
+            $sheet->setCellValue("C".$row, $returning->borrowing->item->name);
+            $sheet->setCellValue("D".$row, $returning->borrowing->user->username);
+            $sheet->setCellValue("E".$row, $returning->returned_quantity);
+            $sheet->setCellValue("F".$row, $returning->status);
+            $sheet->setCellValue("G".$row, $returning->handler?->username ?: "N/A");
+            $sheet->setCellValue("H".$row, $returnedAt ?: "N/A");
+            $sheet->setCellValue("I".$row, $createdAt);
+            $sheet->setCellValue("J".$row, $updatedAt);
+            $row++;
+        }
+
+        $lastRow = $row - 1;
+        $sheet->getStyle("A1:J$lastRow")->applyFromArray([
+            "borders" => [
+                "allBorders" => [
+                    "borderStyle" => Border::BORDER_THIN,
+                    "color" => ["argb" => "FF000000"],
+                ],
+            ],
+        ]);
+
+        $writer = new Xlsx($spreadsheet);
+        $fileName = "returnings_export_" . now()->format("Ymd_His") . ".xlsx";
+
+        return response()->streamDownload(
+            function () use ($writer) {
+                $writer->save("php://output");
+            },
+            $fileName
+        );
     }
 }

@@ -29,6 +29,13 @@ Route::post("logout", [AuthController::class, "logout"])
     ->middleware("auth")
     ->name("logout");
 
+    Route::middleware("auth")->group(function() {
+    Route::get("/borrowings/export", [BorrowingController::class, "exportExcel"])
+        ->name("borrowings.export");
+    Route::get("/returnings/export", [ReturningController::class, "exportExcel"])
+        ->name("returnings.export");
+    });
+
 Route::middleware(["auth", "admin-only"])->group(function() {
     Route::resource("users", UserController::class);
     Route::resource("categories", CategoryController::class);

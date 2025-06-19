@@ -8,12 +8,13 @@ use App\Http\Resources\BorrowingResource;
 use App\Models\Borrowing;
 use App\Models\BorrowingDetail;
 use App\Models\ItemUnit;
-use App\Models\Item;
-use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\Style\Border;
+use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 
 class BorrowingController extends Controller
 {
@@ -329,6 +330,71 @@ class BorrowingController extends Controller
 
         $borrowing->delete();
         return ApiResponse::noContent();
+    }
+
+    public function exportExcel()
+    {
+        $borrowings = Borrowing::with(["user", "item", "approver"])->get();
+        $spreadsheet = new Spreadsheet();
+        $sheet = $spreadsheet->getActiveSheet();
+
+        $headers = [
+            "A" => ["ID", 10],
+            "B" => ["Item", 15],
+            "C" => ["User", 15],
+            "D" => ["Quantity", 10],
+            "E" => ["Status", 15],
+            "F" => ["Due Date", 20],
+            "G" => ["Approved At", 20],
+            "H" => ["Approved By", 15],
+            "I" => ["Created At", 20],
+            "J" => ["Updated At", 20]
+        ];
+
+        foreach ($headers as $col => [$title, $width]) {
+            $sheet->setCellValue($col."1", $title);
+            $sheet->getColumnDimension($col)->setWidth($width);
+        }
+
+        $row = 2;
+        foreach ($borrowings as $borrowing) {
+            $due = $borrowing->due ? \Carbon\Carbon::parse($borrowing->due) : null;
+            $approvedAt = $borrowing->approved_at ? \Carbon\Carbon::parse($borrowing->approved_at) : null;
+            $createdAt = $borrowing->created_at ? \Carbon\Carbon::parse($borrowing->created_at) : null;
+            $updatedAt = $borrowing->updated_at ? \Carbon\Carbon::parse($borrowing->updated_at) : null;
+
+            $sheet->setCellValue("A".$row, $borrowing->id);
+            $sheet->setCellValue("B".$row, $borrowing->item->name);
+            $sheet->setCellValue("C".$row, $borrowing->user->username);
+            $sheet->setCellValue("D".$row, $borrowing->quantity);
+            $sheet->setCellValue("E".$row, $borrowing->status);
+            $sheet->setCellValue("F".$row, $due);
+            $sheet->setCellValue("G".$row, $approvedAt ?: "N/A");
+            $sheet->setCellValue("H".$row, $borrowing->approver?->username ?: "N/A");
+            $sheet->setCellValue("I".$row, $createdAt);
+            $sheet->setCellValue("J".$row, $updatedAt);
+            $row++;
+        }
+
+        $lastRow = $row - 1;
+        $sheet->getStyle("A1:J$lastRow")->applyFromArray([
+            "borders" => [
+                "allBorders" => [
+                    "borderStyle" => Border::BORDER_THIN,
+                    "color" => ["argb" => "FF000000"],
+                ],
+            ],
+        ]);
+
+        $writer = new Xlsx($spreadsheet);
+        $fileName = "borrowings_export_" . now()->format("Ymd_His") . ".xlsx";
+
+        return response()->streamDownload(
+            function () use ($writer) {
+                $writer->save("php://output");
+            },
+            $fileName
+        );
     }
 
     // Auto-reject pending borrowings if overdue

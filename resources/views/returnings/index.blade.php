@@ -16,6 +16,15 @@
                     <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center
                         gap-4 mb-6">
                         <h2 class="text-2xl font-bold">Returnings</h2>
+                        <div class="space-x-2">
+                            <a href="{{ route('returnings.export', request()->query()) }}"
+                                class="cursor-pointer inline-flex items-center bg-[#7752fe]
+                                hover:bg-[#6b4ae5] text-white font-semibold px-5 py-2 rounded-lg shadow
+                                transition duration-200 ease-in-out">
+                                <i class="fa-solid fa-file-export mr-2"></i>
+                                Export Excel
+                            </a>
+                        </div>
                     </div>
 
                     {{-- Status Flash --}}
